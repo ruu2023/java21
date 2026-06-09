@@ -1,6 +1,6 @@
 WITH
 dev_candidate AS (
-    SELECT DISTINCT m.result
+    SELECT DISTINCT m.result, m.code
     FROM code_master m
     WHERE m.code LIKE 'DEV%'
       AND m.code IN (
@@ -10,7 +10,7 @@ dev_candidate AS (
       )
 ),
 other_candidate AS (
-    SELECT DISTINCT m.result
+    SELECT DISTINCT m.result, m.code
     FROM code_master m
     WHERE m.code NOT LIKE 'DEV%'
       AND m.code IN (
@@ -24,10 +24,10 @@ dev_results AS (
     FROM code_master
     WHERE code LIKE 'DEV%'
 )
-SELECT DISTINCT result FROM (
+SELECT DISTINCT t.result, t.code FROM (
 
     -- 両方あり：積集合
-    SELECT d.result
+    SELECT d.result, d.code
     FROM dev_candidate d
     JOIN other_candidate o ON d.result = o.result
     WHERE EXISTS (SELECT 1 FROM dev_candidate)
@@ -36,7 +36,7 @@ SELECT DISTINCT result FROM (
     UNION ALL
 
     -- 両方あり：積集合が空 → dev_candidateそのまま
-    SELECT result FROM dev_candidate
+    SELECT result, code FROM dev_candidate
     WHERE EXISTS (SELECT 1 FROM dev_candidate)
       AND EXISTS (SELECT 1 FROM other_candidate)
       AND NOT EXISTS (
@@ -46,14 +46,14 @@ SELECT DISTINCT result FROM (
     UNION ALL
 
     -- DEVのみ
-    SELECT result FROM dev_candidate
+    SELECT result, code FROM dev_candidate
     WHERE EXISTS (SELECT 1 FROM dev_candidate)
       AND NOT EXISTS (SELECT 1 FROM other_candidate)
 
     UNION ALL
 
     -- OTHERのみ：DEV持ちを除外
-    SELECT result FROM other_candidate
+    SELECT result, code FROM other_candidate
     WHERE NOT EXISTS (SELECT 1 FROM dev_candidate)
       AND EXISTS (SELECT 1 FROM other_candidate)
       AND result NOT IN (SELECT result FROM dev_results)
@@ -61,7 +61,7 @@ SELECT DISTINCT result FROM (
     UNION ALL
 
     -- 両方なし：全件
-    SELECT DISTINCT result FROM code_master
+    SELECT DISTINCT result, code FROM code_master
     WHERE NOT EXISTS (SELECT 1 FROM dev_candidate)
       AND NOT EXISTS (SELECT 1 FROM other_candidate)
 
