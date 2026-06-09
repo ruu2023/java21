@@ -41,22 +41,16 @@ public class DemoService {
             if(result.size() == 0) {
                 result = devCandidate.stream().toList();
             }
-        }
-
+        } else if(devCandidate.size() > 0) {
         // case DEV のみ
-        if(devCandidate.size() > 0 && otherCandidate.size() == 0) {
             result = devCandidate.stream().toList();
-        }
-
+        } else if(otherCandidate.size() > 0) {
         // ここから DEV を含まない
         // case OTHER のみ
-        if(devCandidate.size() == 0 && otherCandidate.size() > 0) {
             result = otherCandidate.stream()
                     .filter(x -> !devResults.contains(x)).collect(Collectors.toList());
-        }
-
+        } else (result.size() == 0) {
         // case 両方含んでいない
-        if(result.size() == 0) {
             result = all;
         }
         return result;
